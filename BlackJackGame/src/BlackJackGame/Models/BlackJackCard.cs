@@ -8,15 +8,30 @@ namespace BlackJackGame.Models
     public class BlackJackCard: Card
     {
         public bool FaceUp { get; set; }
-        public int Value { get; set; }
-
-        public BlackJackCard(FaceValue faceValue, Suit suit) : base(faceValue, suit)
+        public int Value
         {
+            get
+            {
+                if (FaceUp == false)
+                    return 0;
+                if (FaceValue == FaceValue.Queen || FaceValue == FaceValue.Jack || FaceValue == FaceValue.King)
+                    return 10;
+                return FaceValue.GetHashCode();
+            }
+        }
+
+        public BlackJackCard(Suit suit, FaceValue faceValue) : base(suit, faceValue)
+        {
+            FaceUp = false;
         }
 
         public void TurnCard()
         {
-            throw new NotImplementedException();
+            if (FaceUp == false)
+            {
+                FaceUp = true;
+            }
+            else FaceUp = false;
         }
     }
 }

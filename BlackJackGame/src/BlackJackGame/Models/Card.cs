@@ -7,7 +7,7 @@
 
         #region constructor
 
-        public Card(FaceValue faceValue, Suit suit)
+        public Card(Suit suit, FaceValue faceValue)
         {
             FaceValue = faceValue;
             Suit = suit;
