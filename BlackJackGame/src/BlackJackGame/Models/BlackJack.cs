@@ -1,62 +1,117 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BlackJackGame.Models
 {
+
     public class BlackJack
     {
-        private Deck _deck;
 
-        public bool FaceUp { get; set; }
-        public bool FaceDown { get; set; }
-        public Hand DealerHand { get; }
-        public Hand PlayerHand { get; }
+        #region Fields
+        public const bool FaceDown = false;
+        public const bool FaceUp = true;
 
+        private readonly Deck _deck;
+        #endregion
+
+        #region Properties
+
+        public GameState GameState { get; private set; }
+
+        public Hand DealerHand { get; private set; }
+  
+        public Hand PlayerHand { get; private set; }
+        #endregion
+
+        #region Constructors
         public BlackJack()
         {
-            
+            DealerHand = new Hand();
+            PlayerHand = new Hand();
+            _deck = new Deck();
+            Deal();
         }
 
         public BlackJack(Deck deck)
         {
             _deck = deck;
+            DealerHand = new Hand();
+            PlayerHand = new Hand();
+            Deal();
         }
 
-        public void AddCardToHand(Hand hand, bool faceUp, BlackJackCard card)
+        private BlackJack(bool forJsonOnly)
         {
-            throw new NotImplementedException();
+
         }
 
-        public void AdjustGameState(GameState? gamestate)
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
 
-        public void Deal()
+        #region Methods
+        private void Deal()
         {
-            throw new NotImplementedException();
-        }
-
-        public string GameSummary()
-        {
-            throw new NotImplementedException();
+            AddCardToHand(DealerHand, FaceUp);
+            AddCardToHand(DealerHand, FaceDown);
+            AddCardToHand(PlayerHand, FaceUp);
+            AddCardToHand(PlayerHand, FaceUp);
+            AdjustGameState(GameState.PlayerPlays);
         }
 
         public void GivePlayerAnotherCard()
         {
-            throw new NotImplementedException();
-        }
-
-        public void LetDealerFinalize()
-        {
-            throw new NotImplementedException();
+            if (GameState != GameState.PlayerPlays)
+                throw new InvalidOperationException("You cannot take a card now...");
+            AddCardToHand(PlayerHand, FaceUp);
+            AdjustGameState();
         }
 
         public void PassToDealer()
         {
-            throw new NotImplementedException();
+            DealerHand.TurnAllCardsFaceUp();
+            AdjustGameState(GameState.DealerPlays);
+            LetDealerFinalize();
         }
+        private void LetDealerFinalize()
+        {
+            while (GameState == GameState.DealerPlays)
+            {
+                AddCardToHand(DealerHand, FaceUp);
+                AdjustGameState();
+            }
+        }
+
+        private void AdjustGameState(GameState? gameState = null)
+        {
+            if (gameState.HasValue)
+                GameState = gameState.Value;
+            if (GameState == GameState.PlayerPlays && PlayerHand.Value >= 21)
+                PassToDealer();
+            if (GameState == GameState.DealerPlays && (PlayerHand.Value > 21 || DealerHand.Value >= 21 || DealerHand.Value >= PlayerHand.Value))
+                GameState = GameState.GameOver;
+        }
+        private void AddCardToHand(Hand hand, bool faceUp)
+        {
+            BlackJackCard card = _deck.Draw();
+            if (faceUp)
+                card.TurnCard();
+            hand.AddCard(card);
+        }
+
+        public string GameSummary()
+        {
+            if (GameState != GameState.GameOver)
+                return null;
+            if (PlayerHand.Value > 21)
+                return "Player burned, dealer wins";
+            if (PlayerHand.Value == 21 && PlayerHand.NrOfCards == 2 && DealerHand.Value != 21)
+                return "BLACKJACK";
+            if (PlayerHand.Value == DealerHand.Value)
+                return "Equal, dealer wins";
+            if (DealerHand.Value > 21)
+                return "Dealer burned, player wins";
+            if (DealerHand.Value > PlayerHand.Value)
+                return "Dealer wins";
+            return "Player wins";
+        }
+        #endregion
     }
 }

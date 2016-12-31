@@ -9,28 +9,53 @@ namespace BlackJackGame.Models
     {
         private IList<BlackJackCard> _cards;
 
-        public int NrOfCards { get; }
-        public int Value { get; }
-        public IEnumerable<BlackJackCard> Cards { get; set; }
+        public int NrOfCards => _cards.Count;
+        public int Value => CalculateValue();
+        public IEnumerable<BlackJackCard> Cards { get {return _cards;}}
 
         public Hand()
         {
-            
+            _cards = new List<BlackJackCard>();
         }
 
         public void AddCard(BlackJackCard blackJackCard)
         {
-            throw new NotImplementedException();
+            _cards.Add(blackJackCard);
         }
 
-        public int CalculateValue()
+        private int CalculateValue()
         {
-            throw new NotImplementedException();
+            int value = 0;
+            IList<BlackJackCard> aceCards = new List<BlackJackCard>();
+
+            foreach (BlackJackCard c in _cards )
+            {
+                if (c.FaceValue == FaceValue.Ace)
+                {
+                    aceCards.Add(c);
+                }
+                else
+                value += c.Value;
+            }
+
+            foreach (BlackJackCard ace in aceCards)
+            {
+                if (value <= 10)
+                {
+                    value += 11;
+                }
+                else value += 1;
+            }
+            return value;
         }
 
         public void TurnAllCardsFaceUp()
         {
-            throw new NotImplementedException();
+            foreach (BlackJackCard c in _cards)
+            {
+                if(!c.FaceUp)
+                    c.TurnCard();
+            }
         }
     }
 }
